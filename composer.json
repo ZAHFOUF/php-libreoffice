@@ -3,7 +3,6 @@
     "description": "Framework-agnostic LibreOffice headless document conversion library for PHP.",
     "type": "library",
     "license": "MIT",
-    "version": "1.2.0",
     "require": {
         "php": "^8.1",
         "symfony/console": "^6.1 || ^7.0",
