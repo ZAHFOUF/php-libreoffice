@@ -4,34 +4,37 @@ declare(strict_types=1);
 
 namespace LibreOffice\Console\Command;
 
+use LibreOffice\Config\OptionsResolver;
 use LibreOffice\LibreOffice;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-
+use Symfony\Component\Console\Attribute\AsCommand;
+#[AsCommand(
+    name: 'lo:convert',
+    description: 'Convert Office document to another format using LibreOffice CLI.'
+)]
 final class ConvertCommand extends Command
 {
-    protected static $defaultName = 'lo:convert';
-    protected static $defaultDescription = 'Convert Office document to another format using LibreOffice CLI.';
-
     protected function configure(): void
     {
         $this
             ->addArgument('input', InputArgument::REQUIRED, 'Input document path')
             ->addOption('to', null, InputOption::VALUE_REQUIRED, 'Target format', 'pdf')
             ->addOption('out', null, InputOption::VALUE_OPTIONAL, 'Output directory')
-            ->addOption('timeout', null, InputOption::VALUE_REQUIRED, 'Timeout in seconds', '120')
+            ->addOption('timeout', null, InputOption::VALUE_REQUIRED, 'Timeout in seconds', OptionsResolver::getGlobalOption('timeout') ?? 120)
             ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile strategy: none|per_job|per_worker|shared_mutex')
             ->addOption('temp-dir', null, InputOption::VALUE_OPTIONAL, 'Temporary directory')
-            ->addOption('binary', null, InputOption::VALUE_OPTIONAL, 'LibreOffice binary', 'soffice')
-            ->addOption('worker-id', null, InputOption::VALUE_OPTIONAL, 'Worker id for per_worker strategy')
+            ->addOption('binary', null, InputOption::VALUE_OPTIONAL, 'LibreOffice binary',OptionsResolver::getBinary())
+            ->addOption('worker-id', null, InputOption::VALUE_OPTIONAL, 'Worker id for per_worker strategy', OptionsResolver::getGlobalOption('worker_id') ?? null)
             ->addOption('keep-temp', null, InputOption::VALUE_NONE, 'Keep temp files on failure');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+
         $options = [
             'binary' => (string) $input->getOption('binary'),
             'timeout' => (int) $input->getOption('timeout'),
@@ -48,6 +51,7 @@ final class ConvertCommand extends Command
             $options['worker_id'] = (string) $input->getOption('worker-id');
         }
 
+      
         $libreOffice = new LibreOffice($options);
         $overrides = [];
         if ($input->getOption('out') !== null) {

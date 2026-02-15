@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LibreOffice\Config;
 
 use LibreOffice\Exception\InvalidOptionException;
+use LibreOffice\Util\File;
 use LibreOffice\Util\Path;
 use LibreOffice\Util\Platform;
 
@@ -12,7 +13,7 @@ final class OptionsResolver
 {
     private const PROFILE_STRATEGIES = ['none', 'per_job', 'per_worker', 'shared_mutex'];
     private const CLEANUP_POLICIES = ['always', 'keep_on_failure'];
-
+    private const GLOBAL_OPTIONS_PATH = __DIR__ . '/global_options.php';
     /**
      * @param array<string, mixed> $options
      * @return array{
@@ -27,7 +28,7 @@ final class OptionsResolver
     public static function resolve(array $options, Platform $platform): array
     {
         $resolved = [
-            'binary' => isset($options['binary']) ? (string) $options['binary'] : 'soffice',
+            'binary' => isset($options['binary']) ? (string) $options['binary'] : self::getBinary(),
             'timeout' => isset($options['timeout']) ? (int) $options['timeout'] : 120,
             'profile_strategy' => isset($options['profile_strategy']) ? (string) $options['profile_strategy'] : $platform->defaultProfileStrategy(),
             'temp_dir' => isset($options['temp_dir']) ? (string) $options['temp_dir'] : sys_get_temp_dir(),
@@ -68,5 +69,40 @@ final class OptionsResolver
         }
 
         return $resolved;
+    }
+
+    public static function saveGlobalOptions(array $data): void
+    {
+        $existing = self::loadGlobalOptions();
+        foreach ($data as $key => $value) {
+            $existing[$key] = $value;
+        }
+        File::savePhp(self::GLOBAL_OPTIONS_PATH, $existing);
+    }
+
+    public static function loadGlobalOptions(): array
+    {
+        if (!file_exists(self::GLOBAL_OPTIONS_PATH)) {
+            return [];
+        }
+        return File::loadPhp(self::GLOBAL_OPTIONS_PATH);
+    }
+
+    public static function getGlobalOption(string $key): mixed
+    {
+        $options = self::loadGlobalOptions();
+        return $options[$key] ?? null;
+    }
+
+    public static function setGlobalOption(string $key, mixed $value): void
+    {
+        $options = self::loadGlobalOptions();
+        $options[$key] = $value;
+        self::saveGlobalOptions($options);
+    }
+
+    public static function getBinary(): string
+    {
+        return self::getGlobalOption('binary') ?? 'soffice';
     }
 }

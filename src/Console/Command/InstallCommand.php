@@ -9,12 +9,15 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Attribute\AsCommand;
 
+#[AsCommand(
+    name: 'lo:install',
+    description: 'Attempt LibreOffice install on supported platforms.'
+)]
 final class InstallCommand extends Command
 {
-    protected static $defaultName = 'lo:install';
-    protected static $defaultDescription = 'Attempt LibreOffice install on supported platforms.';
-
+   
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $platform = new Platform();

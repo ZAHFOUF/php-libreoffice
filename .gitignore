@@ -1,2 +1,3 @@
 /vendor/
 /.phpunit.cache/
+/src/Config/global_options.php

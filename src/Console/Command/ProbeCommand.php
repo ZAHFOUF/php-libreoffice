@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace LibreOffice\Console\Command;
 
+use LibreOffice\Config\OptionsResolver;
 use LibreOffice\Util\Platform;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Console\Attribute\AsCommand;
 
-final class ProbeCommand extends Command
+#[AsCommand(
+    name: 'lo:probe',
+    description: 'Check LibreOffice (soffice) availability and basic environment.'
+)]
+class ProbeCommand extends Command
 {
-    protected static $defaultName = 'lo:probe';
-    protected static $defaultDescription = 'Check LibreOffice binary and temp-dir readiness.';
+   
 
     protected function configure(): void
     {
@@ -43,6 +48,10 @@ final class ProbeCommand extends Command
             $process->mustRun();
             $output->writeln('<info>LibreOffice detected.</info>');
             $output->writeln(trim($process->getOutput() . "\n" . $process->getErrorOutput()));
+            OptionsResolver::saveGlobalOptions([
+                'binary' => $binary,
+                'temp_dir' => $tempDir,
+            ]);
             return Command::SUCCESS;
         } catch (\Throwable $e) {
             $output->writeln('<error>LibreOffice binary not found or not executable.</error>');
