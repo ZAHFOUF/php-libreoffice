@@ -1,133 +1,87 @@
-# zahfouf/php-libreoffice
+# PHP LibreOffice wrapper for converting Word to PDF
 
-Framework-agnostic PHP library to convert Office documents (DOC/DOCX initially) to PDF using LibreOffice headless CLI (`soffice`).
+Simple PHP package to convert Word files (`.doc`, `.docx`) to PDF using LibreOffice (`soffice`) in headless mode.
 
-## Install
+![LibreOffice](https://sm.pcmag.com/t/pcmag_au/review/l/libreoffic/libreoffice_q1be.3840.jpg)
+![PHP Web Development](https://www.sectorlink.com/img/blog/php-web-development.jpg)
+
+## Installation
 
 ```bash
 composer require zahfouf/php-libreoffice
 ```
 
-## Basic Usage
+## CLI Commands
 
-### Fluent API
-
-```php
-<?php
-
-use LibreOffice\LibreOffice;
-
-$lo = new LibreOffice([
-    'binary' => 'soffice',
-]);
-
-$result = $lo->convert('/absolute/path/report.docx')->to('pdf');
-```
-
-### Static convenience API
-
-```php
-<?php
-
-use LibreOffice\LibreOffice;
-
-$result = LibreOffice::make([
-    'timeout' => 180,
-])->convert('/absolute/path/report.doc')->to('pdf');
-```
-
-`ConvertResult` includes:
-
-- `outputPath` (absolute path)
-- `inputPath` (absolute path)
-- `durationMs`
-- `stdout`
-- `stderr`
-- `command` (argv array used to run `soffice`)
-
-## Options
-
-| Option | Type | Default | Notes |
-|---|---|---|---|
-| `binary` | string | `soffice` | Binary path or executable name in PATH |
-| `timeout` | int | `120` | Process timeout (seconds) |
-| `profile_strategy` | string | Linux: `per_job`, Windows: `none` | `none`, `per_job`, `per_worker`, `shared_mutex` |
-| `temp_dir` | string | `sys_get_temp_dir()` | Must be writable |
-| `cleanup_policy` | string | `always` | `always`, `keep_on_failure` |
-| `worker_id` | string\|null | `null` | Used with `per_worker` (defaults to PID if omitted) |
-
-## Laravel Example (manual instantiation)
-
-```php
-<?php
-
-use LibreOffice\LibreOffice;
-
-$lo = new LibreOffice([
-    'temp_dir' => storage_path('app/tmp/libreoffice'),
-]);
-
-$result = $lo->convert(storage_path('app/invoices/invoice.docx'))->to('pdf');
-```
-
-## Symfony Example (manual instantiation)
-
-```php
-<?php
-
-use LibreOffice\LibreOffice;
-
-$lo = new LibreOffice([
-    'temp_dir' => '/var/tmp/libreoffice',
-]);
-
-$result = $lo->convert('/srv/documents/input.docx')->to('pdf');
-```
-
-## CLI Usage
-
-After install, command is available as:
+After installation, the CLI binary is available at:
 
 ```bash
 vendor/bin/libreoffice
 ```
 
-### Probe installation
+### `lo:install`
 
-```bash
-vendor/bin/libreoffice lo:probe --binary=soffice --temp-dir=/tmp
-```
-
-### Install LibreOffice (Ubuntu/Debian)
+Installs LibreOffice automatically on Ubuntu/Debian.
 
 ```bash
 vendor/bin/libreoffice lo:install
 ```
 
-### Convert file
+Notes:
+- Windows: automatic installation is not supported (the command prints the official download URL).
+- Non-Debian/Ubuntu Linux: install LibreOffice using your distribution package manager.
+
+### `lo:probe`
+
+Checks that the LibreOffice binary works and saves default values:
+- binary path (`binary`)
+- temporary directory (`temp_dir`)
 
 ```bash
-vendor/bin/libreoffice lo:convert /path/file.docx --to=pdf --out=/path/out --timeout=180 --profile=per_job --temp-dir=/tmp/libreoffice --keep-temp -vv
+vendor/bin/libreoffice lo:probe --binary="C:\Program Files\LibreOffice\program\soffice.exe" --temp-dir="C:\laragon\tmp"
 ```
 
-## Troubleshooting
+These values are stored in `src/Config/global_options.php`.
 
-- **`User installation could not be completed` / `dconf-CRITICAL`**  
-  Use a writable `temp_dir` and set `profile_strategy=per_job` (default on Linux) or `shared_mutex`.
-- **Binary not found**  
-  Install LibreOffice and ensure `soffice` is in `PATH`, or provide explicit `binary` option.
-- **Slow startup**  
-  Try `per_worker` strategy for long-lived workers, with a stable `worker_id`.
-- **Permissions issues**  
-  Confirm `temp_dir` is writable by the PHP process user.
+### `lo:convert`
 
-## Testing
+Converts a Word document to PDF.
+
+```bash
+vendor/bin/libreoffice lo:convert "C:\docs\invoice.docx" --to=pdf --out="C:\docs\out"
+```
+
+Useful options:
+- `--binary`: path to `soffice`
+- `--timeout`: timeout in seconds
+- `--temp-dir`: temporary directory
+- `--profile`: strategy (`none|per_job|per_worker|shared_mutex`)
+- `--worker-id`: worker id (for `per_worker`)
+- `--keep-temp`: keep temporary files on failure
+
+## Usage example (code)
+
+```php
+<?php
+
+use LibreOffice\LibreOffice;
+
+$lo = new LibreOffice();
+
+$result = $lo->convert('C:/docs/report.docx')->to('pdf', ['output_dir' => 'C:/docs/out']);
+
+echo $result->outputPath . PHP_EOL;
+echo $result->durationMs . PHP_EOL;
+
+// Static usage (without instantiating):
+
+$result = LibreOffice::make()->convert('C:/docs/report.docx')->to('pdf', ['output_dir' => 'C:/docs/out']);
+```
+
+
+
+## Test
 
 ```bash
 composer test
 ```
-
-Optional integration test:
-
-- set `RUN_LO_INTEGRATION=1` or `LO_BIN=/path/to/soffice`
-- provide a fixture `tests/Fixtures/sample.docx`
