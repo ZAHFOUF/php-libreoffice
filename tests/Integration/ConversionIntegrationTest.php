@@ -11,27 +11,18 @@ final class ConversionIntegrationTest extends TestCase
 {
     public function testDocxToPdfConversion(): void
     {
-        $run = getenv('RUN_LO_INTEGRATION') === '1';
-        $loBin = getenv('LO_BIN');
-
-        if (!$run && $loBin === false) {
-            self::markTestSkipped('Set RUN_LO_INTEGRATION=1 or LO_BIN to run integration test.');
-        }
-
-        $binary = $loBin !== false ? $loBin : 'soffice';
-        $fixture = __DIR__ . '/../Fixtures/sample.docx';
+        $fixture = __DIR__ . '/templates/test.docx';
         if (!is_file($fixture)) {
-            self::markTestSkipped('Fixture not found: tests/Fixtures/sample.docx');
+            var_dump($fixture);
+            self::markTestSkipped('Fixture not found: tests/templates/test.docx');
         }
 
         $outDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'lo-integration-out';
         @mkdir($outDir, 0777, true);
 
-        $result = LibreOffice::make([
-            'binary' => $binary,
-            'cleanup_policy' => 'keep_on_failure',
-        ])->convert($fixture)->to('pdf', ['output_dir' => $outDir]);
+        $result = LibreOffice::make()->convert($fixture)->to('pdf', ['output_dir' => $outDir]);
 
+        var_dump($result->outputPath);
         self::assertFileExists($result->outputPath);
         self::assertStringEndsWith('.pdf', $result->outputPath);
     }

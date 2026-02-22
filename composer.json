@@ -26,6 +26,6 @@
         "bin/libreoffice"
     ],
     "scripts": {
-        "test": "phpunit -c phpunit.xml.dist"
+        "test": "phpunit -c phpunit.xml.dist tests/Integration/ConversionIntegrationTest.php"
     }
 }
