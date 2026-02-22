@@ -2,8 +2,10 @@
 
 Simple PHP package to convert Word files (`.doc`, `.docx`) to PDF using LibreOffice (`soffice`) in headless mode.
 
-![LibreOffice](https://sm.pcmag.com/t/pcmag_au/review/l/libreoffic/libreoffice_q1be.3840.jpg)
-![PHP Web Development](https://www.sectorlink.com/img/blog/php-web-development.jpg)
+<p align="center">
+  <img src="https://sm.pcmag.com/t/pcmag_au/review/l/libreoffic/libreoffice_q1be.3840.jpg" width="45%" />
+  <img src="https://www.sectorlink.com/img/blog/php-web-development.jpg" width="45%" />
+</p>
 
 ## Installation
 
